@@ -16,5 +16,5 @@ class OwnerViewSet(viewsets.ModelViewSet):
     """
     Habilita o CRUD de Owners
     """
-    queryset = Owner.objects.all().order_by('-creation_date', '-id')
+    queryset = Owner.objects.all().order_by('id', 'name')
     serializer_class = OwnerSerializer

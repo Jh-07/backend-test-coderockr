@@ -1,11 +1,14 @@
 
-from datetime import date,datetime
-
-from dateutil.relativedelta import relativedelta
+from datetime import date
+from decimal import Decimal
 from rest_framework import serializers
+from rest_framework.serializers import  SkipField
 from rest_framework.exceptions import ValidationError
+
 from investment_manager import  validators
 from investment_manager.models import Owner, Investment
+from investment_manager.utils import get_month_diff, calculate_expected_balance, get_growth_rate, get_tax_rate
+from investment_manager.validators import parse_expected_date
 
 
 class OwnerSerializer(serializers.ModelSerializer):
@@ -26,10 +29,46 @@ class InvestmentSerializer(serializers.ModelSerializer):
     Serializador da classe/modelo Investment
     Serializa todos os campos
     """
+
+
+
     expected_balance = serializers.SerializerMethodField()
+    tax = serializers.SerializerMethodField()
+    gains = serializers.SerializerMethodField()
+
     class Meta:
         model = Investment
         fields = '__all__'
+
+    def validate(self, data):
+        creation_date = data.get('creation_date')
+        amount = data.get('amount')
+        withdraw_date = data.get('withdraw_date')
+
+        validators.validate_amount(amount)
+        validators.validate_investment_creation_date(creation_date)
+        if withdraw_date:
+            validators.validate_expected_date(creation_date, withdraw_date)
+        return data
+
+    def get_gains(self,investment):
+        if not investment.withdraw_date:
+            return None
+        else:
+            months = get_month_diff(investment.creation_date, investment.withdraw_date)
+            rate = get_growth_rate()
+            total_amount = calculate_expected_balance(rate, investment.amount, months)
+            return total_amount - investment.amount
+
+
+    def get_tax(self,investment):
+        if not investment.withdraw_date:
+            return None
+        else:
+            months = get_month_diff(investment.creation_date, investment.withdraw_date)
+            gains = self.get_gains(investment)
+            tax = get_tax_rate(months)
+            return gains * tax
 
     def get_expected_balance(self, investment):
         """
@@ -41,20 +80,29 @@ class InvestmentSerializer(serializers.ModelSerializer):
             investment (Investment): Investment model
 
         Returns:
-            Expected balance for the especific date from the investment creation date
+            Expected balance for the especific date from the investment creation date or
+            Only the gains if the investment is withdrawn or
+            A string explaining why is not a valid request
         """
-        request = self.context.get('request') #Recebe o request do contexto do serializer
-        expectation_date = date.today()
+        expectation_date = date.today() #By default, expectation date is today
+        request = self.context.get('request')
         if request:
-            expectation_date_str = request.query_params.get('expectation_date') #Recebe a data passada na URL e confere se a formatação está correta (ano-mes-dia)
-            expectation_date = validators.parse_expected_date(expectation_date_str)
-            validators.validate_expected_date(investment.creation_date,expectation_date)
+            expectation_date_str = request.query_params.get('expectation_date')
+            if expectation_date_str:
+                try:
+                    expectation_date = parse_expected_date(expectation_date_str)
+                except ValidationError:
+                    return "Invalid expected_date format (use YYYY-MM-DD)"
+        if expectation_date < investment.creation_date:
+            return "Invalid expected date. Date is before the investment"
 
-        rate = 0.00052 #0.52%
 
-        delta_time = relativedelta(expectation_date,investment.creation_date) # Diferença de tempo entre a data de criação do investimento e a data esperada
-        months = delta_time.years*12 + delta_time.month #Observação: Relativedelta ,quando passada duas datas, retorna um objeto com arumentos de ano, mês e dias de diferença
-        percentage_gains =  (1+rate) ** months
-        expected_balance = investment.amount * percentage_gains
+        if investment.withdraw_date: #If there is a withdrawal date, then  don't show this field
+            return None
+        else: #Else, return the amount + gains expected
+            months = get_month_diff(investment.creation_date,expectation_date)
+            total_amount = calculate_expected_balance(get_growth_rate(), investment.amount,months)
+            return Decimal(total_amount)
 
-        return round(expected_balance,2)
+
+

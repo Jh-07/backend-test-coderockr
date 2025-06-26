@@ -9,7 +9,7 @@ File containing validation methods used in serializers
 def validate_expected_date(investment_date, expected_date):
     """
     Pt:
-    Método para validar se a data esperada é menor que a data de investimento
+    Função para validar se a data esperada é menor que a data de investimento
 
     Args:
         investment_date (datetime.date): Date of creation of the investment
@@ -21,7 +21,7 @@ def validate_expected_date(investment_date, expected_date):
 def parse_expected_date(expected_date_string):
     """
     Pt:
-    Método usado para formatar uma string em datetime.date, se o formato for inválido, a checagem falha
+    Função usada para formatar uma string em datetime.date, se o formato for inválido, a checagem falha
 
     Args:
         expected_date_string(str): String to be formatted
