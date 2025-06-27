@@ -14,6 +14,9 @@ def validate_expected_date(investment_date, expected_date):
     Args:
         investment_date (datetime.date): Date of creation of the investment
         expected_date (datetime.date): Expected date to be compared
+
+    Raises:
+        ValidationError
     """
     if expected_date < investment_date:
         raise ValidationError("Expected date is before investment date")
@@ -27,7 +30,10 @@ def parse_expected_date(expected_date_string):
         expected_date_string(str): String to be formatted
 
     Returns:
-        Formatted date from string or raises an error
+        Formatted date from string
+
+    Raises:
+        ValidationError
     """
     try:
         parsed_expected_date = datetime.strptime(expected_date_string,'%Y-%m-%d').date()
@@ -42,6 +48,9 @@ def validate_amount(amount):
 
     Args:
         amount(float): Initial investment amount
+
+    Raises:
+        ValidationError
     """
     if amount < 0:
         raise ValidationError("Amount can't be negative")
@@ -53,8 +62,35 @@ def validate_investment_creation_date(investment_creation_date):
 
     Args:
         investment_creation_date(datetime.date): Date of investment
+
+    Raises:
+        ValidationError
     """
     if investment_creation_date > date.today():
         raise ValidationError("Date of investment can't be in future")
 
+def validate_withdraw_date(investment_date, withdraw_date):
+    """
+    Validates if withdraw input is not future
 
+    Args:
+        investment_date: Creation date of the investment
+        withdraw_date: input date of withdrawal
+    Raises:
+        ValidationError
+    """
+    if withdraw_date <= date.today():
+        validate_expected_date(investment_date,withdraw_date)
+    else:
+        raise  ValidationError("Date of withdraw can't be in future")
+
+def check_if_already_withdrawn(investment_withdraw_date):
+    """
+    Validates if investment is already withdrawn
+    Args:
+        investment_withdraw_date: date of withdrawal
+    Raises:
+         ValidationError
+    """
+    if investment_withdraw_date:
+        raise ValidationError("Investment already withdrawn")

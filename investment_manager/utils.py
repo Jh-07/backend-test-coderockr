@@ -9,19 +9,26 @@ def get_growth_rate():
     return rate
 
 def get_tax_rate(months):
+    tax_rates = [
+        '0.225',
+        '0.185',
+        '0.150'
+    ]
     if months < 12:
-        return Decimal('0.225')
+        return Decimal(tax_rates[0])
     elif 12 <= months < 24:
-        return Decimal('0.185')
+        return Decimal(tax_rates[1])
     else:
-        return Decimal('0.150')
+        return Decimal(tax_rates[2])
 
 def get_month_diff(start_date,end_date):
     """
     Return the diference in months within any 2 given dates
-    :param start_date:
-    :param end_date:
-    :return:
+    Args:
+        start_date:
+        end_date:
+    Returns:
+        number of months
     """
     delta_time = relativedelta(end_date,start_date) # Time difference between dates
     months = (delta_time.years or 0)*12 + (delta_time.month or 0)
@@ -30,11 +37,17 @@ def get_month_diff(start_date,end_date):
 def calculate_expected_balance(rate, amount, months):
     """
     Calculate an expected balance using composite gain
-    :param rate: growth rate per month
-    :param amount: inicial investment
-    :param months: months passed
-    :return: The total composite amount
+
+    Args:
+        rate: growth rate per month
+        amount: inicial investment
+        months: months passed
+    Returns:
+        The total composite amount
     """
     percentage_gains = (Decimal(1) + rate) ** Decimal(months)
     total_amount = amount * percentage_gains
-    return total_amount
+    return quantize_decimals(total_amount)
+
+def quantize_decimals(decimal):
+    return decimal.quantize(Decimal('0.01'))

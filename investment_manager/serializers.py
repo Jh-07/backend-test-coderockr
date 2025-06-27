@@ -7,7 +7,8 @@ from rest_framework.exceptions import ValidationError
 
 from investment_manager import  validators
 from investment_manager.models import Owner, Investment
-from investment_manager.utils import get_month_diff, calculate_expected_balance, get_growth_rate, get_tax_rate
+from investment_manager.utils import get_month_diff, calculate_expected_balance, get_growth_rate, get_tax_rate, \
+    quantize_decimals
 from investment_manager.validators import parse_expected_date
 
 
@@ -27,48 +28,91 @@ class InvestmentSerializer(serializers.ModelSerializer):
     """
     Pt:
     Serializador da classe/modelo Investment
-    Serializa todos os campos
+    Serializa todos os campos além dos campos derivativos expected_balance, tax , total_gains e net_gains.
     """
 
+    ### Derivative fields
+    #Option 1:
+    owner_name = serializers.CharField(source='owner.name', read_only=True) # This only shows the owner name (and its ID by default)
 
-
+    # Option 2:
+    # owner = OwnerSerializer(read_only=True) # Owner is nested with the investment, so it shows the entire related instance
     expected_balance = serializers.SerializerMethodField()
     tax = serializers.SerializerMethodField()
-    gains = serializers.SerializerMethodField()
+    total_gains = serializers.SerializerMethodField()
+    net_gains = serializers.SerializerMethodField()
+    ###
 
     class Meta:
         model = Investment
         fields = '__all__'
 
     def validate(self, data):
+        """
+        Validate user inputs
+        """
         creation_date = data.get('creation_date')
         amount = data.get('amount')
         withdraw_date = data.get('withdraw_date')
 
         validators.validate_amount(amount)
         validators.validate_investment_creation_date(creation_date)
+
         if withdraw_date:
-            validators.validate_expected_date(creation_date, withdraw_date)
+            investment = getattr(self,'instance',None)
+            validators.check_if_already_withdrawn(investment.withdraw_date)
+            validators.validate_withdraw_date(creation_date, withdraw_date)
         return data
 
-    def get_gains(self,investment):
+    def to_representation(self, investment):
+        """
+        Serialize fields that are relevant.
+        If there is a withdrawal, then there is no need to show expected balance,
+        else there is no need to show the gains or taxation
+        """
+        rep = super().to_representation(investment)
+
+        if investment.withdraw_date:
+            rep.pop('expected_balance',None)
+        else:
+            rep.pop('tax',None)
+            rep.pop('total_gains',None)
+            rep.pop('net_gains',None)
+        return rep
+
+    def get_total_gains(self,investment):
+        """
+        Creates a field of total gains
+        """
         if not investment.withdraw_date:
             return None
         else:
             months = get_month_diff(investment.creation_date, investment.withdraw_date)
             rate = get_growth_rate()
             total_amount = calculate_expected_balance(rate, investment.amount, months)
-            return total_amount - investment.amount
+            return quantize_decimals(total_amount - investment.amount)
 
+    def get_net_gains(self,investment):
+        """
+        Shows net gains (total gains - taxes)
+        """
+        if not investment.withdraw_date:
+            return None
+        total_gains =self.get_total_gains(investment)
+        tax = self.get_tax(investment)
+        return quantize_decimals(total_gains - tax)
 
     def get_tax(self,investment):
+        """
+        Shows how mutch tax was paid on withdraw
+        """
         if not investment.withdraw_date:
             return None
         else:
             months = get_month_diff(investment.creation_date, investment.withdraw_date)
-            gains = self.get_gains(investment)
+            gains = self.get_total_gains(investment)
             tax = get_tax_rate(months)
-            return gains * tax
+            return quantize_decimals(gains * tax)
 
     def get_expected_balance(self, investment):
         """
@@ -80,10 +124,14 @@ class InvestmentSerializer(serializers.ModelSerializer):
             investment (Investment): Investment model
 
         Returns:
-            Expected balance for the especific date from the investment creation date or
-            Only the gains if the investment is withdrawn or
+            Expected balance for the especific date from the investment creation date as a string or
+            None, if the investment is already withdrawn or
             A string explaining why is not a valid request
         """
+
+        if investment.withdraw_date: #If there is a withdrawal date, then this field returns None
+            return None
+
         expectation_date = date.today() #By default, expectation date is today
         request = self.context.get('request')
         if request:
@@ -96,13 +144,9 @@ class InvestmentSerializer(serializers.ModelSerializer):
         if expectation_date < investment.creation_date:
             return "Invalid expected date. Date is before the investment"
 
-
-        if investment.withdraw_date: #If there is a withdrawal date, then  don't show this field
-            return None
-        else: #Else, return the amount + gains expected
-            months = get_month_diff(investment.creation_date,expectation_date)
-            total_amount = calculate_expected_balance(get_growth_rate(), investment.amount,months)
-            return Decimal(total_amount)
+        months = get_month_diff(investment.creation_date,expectation_date)
+        total_amount = calculate_expected_balance(get_growth_rate(), investment.amount,months)
+        return quantize_decimals(total_amount)
 
 
 
