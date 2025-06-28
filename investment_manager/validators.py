@@ -52,8 +52,8 @@ def validate_amount(amount):
     Raises:
         ValidationError
     """
-    if amount < 0:
-        raise ValidationError("Amount can't be negative")
+    if amount <= 0:
+        raise ValidationError("Amount can't be negative nor 0")
 
 def validate_investment_creation_date(investment_creation_date):
     """

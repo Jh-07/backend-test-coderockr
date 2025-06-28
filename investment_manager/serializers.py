@@ -1,8 +1,6 @@
 
 from datetime import date
-from decimal import Decimal
 from rest_framework import serializers
-from rest_framework.serializers import  SkipField
 from rest_framework.exceptions import ValidationError
 
 from investment_manager import  validators
@@ -47,21 +45,38 @@ class InvestmentSerializer(serializers.ModelSerializer):
         model = Investment
         fields = '__all__'
 
+    # These individual validations are only triggred if the field is in the body. Make sure that these fields are NOT REQUIRED
+    def validate_creation_date(self,creation_date):
+        """
+        Validates creation_date individualy
+        """
+        validators.validate_investment_creation_date(creation_date)
+        return creation_date
+
+    def validate_amount(self,amount):
+        """
+        Validates amount individualy
+        """
+        validators.validate_amount(amount)
+        return amount
+
+    # Use this method if you want to validate required fields or especial cases like this one:
+    # withdraw date is compared to the user input creation date if exists, if not it will be compared to the current object creatioon date
     def validate(self, data):
         """
         Validate user inputs
         """
         creation_date = data.get('creation_date')
-        amount = data.get('amount')
         withdraw_date = data.get('withdraw_date')
 
-        validators.validate_amount(amount)
-        validators.validate_investment_creation_date(creation_date)
-
         if withdraw_date:
-            investment = getattr(self,'instance',None)
+            investment = getattr(self, 'instance', None)
             validators.check_if_already_withdrawn(investment.withdraw_date)
-            validators.validate_withdraw_date(creation_date, withdraw_date)
+            if creation_date:
+                validators.validate_withdraw_date(creation_date, withdraw_date)
+            else:
+                validators.validate_withdraw_date(investment.creation_date, withdraw_date)
+
         return data
 
     def to_representation(self, investment):
