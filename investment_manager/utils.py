@@ -1,5 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
+from rest_framework.exceptions import ValidationError
 
 # rate and tax  needs to be Decimal, investment.amount is registred as Decimal, so it only supports operations with other Decimals
 # rate = 0,52% per month
@@ -48,6 +50,27 @@ def calculate_expected_balance(rate, amount, months):
     percentage_gains = (Decimal(1) + rate) ** Decimal(months)
     total_amount = amount * percentage_gains
     return quantize_decimals(total_amount)
+
+def format_date(date_str):
+    """
+       Pt:
+       Função usada para formatar uma string em datetime.date, se o formato for inválido, a checagem falha
+
+       Args:
+           date_str(str): String to be formatted
+
+       Returns:
+           Formatted date from string
+
+       Raises:
+           ValidationError
+       """
+    try:
+        parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        return parsed_date
+    except ValueError:
+        raise ValidationError("Invalid format. Should be 'YYYY-MM-DD'")
+
 
 def quantize_decimals(decimal):
     return decimal.quantize(Decimal('0.01'))

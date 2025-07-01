@@ -39,7 +39,7 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         withdraw_date_str = request.data.get('withdraw_date')
         if withdraw_date_str:
             try:
-                #TODO I don't understand why withdraw_date is 'not being used'
+                #I don't understand why withdraw_date is 'not being used'
                 #Answer: It seems to be an IDE bug, withdraw date is used correctly
                 withdraw_date = datetime.strptime(withdraw_date_str, '%Y-%m-%d').date()
             except ValueError:

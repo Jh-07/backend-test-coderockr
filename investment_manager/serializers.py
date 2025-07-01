@@ -6,8 +6,7 @@ from rest_framework.exceptions import ValidationError
 from investment_manager import  validators
 from investment_manager.models import Owner, Investment
 from investment_manager.utils import get_month_diff, calculate_expected_balance, get_growth_rate, get_tax_rate, \
-    quantize_decimals
-from investment_manager.validators import parse_expected_date
+    quantize_decimals, format_date
 
 
 class OwnerSerializer(serializers.ModelSerializer):
@@ -20,6 +19,14 @@ class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner
         fields = '__all__'
+
+    def validate_name(self,name):
+        validators.validate_owner_name(name)
+        return name
+
+    def validate_birthday(self,birthday):
+        validators.validate_owner_birthday(birthday)
+        return birthday
 
 
 class InvestmentSerializer(serializers.ModelSerializer):
@@ -153,7 +160,7 @@ class InvestmentSerializer(serializers.ModelSerializer):
             expectation_date_str = request.query_params.get('expectation_date')
             if expectation_date_str:
                 try:
-                    expectation_date = parse_expected_date(expectation_date_str)
+                    expectation_date = format_date(expectation_date_str)
                 except ValidationError:
                     return "Invalid expected_date format (use YYYY-MM-DD)"
         if expectation_date < investment.creation_date:

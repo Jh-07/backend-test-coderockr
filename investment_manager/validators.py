@@ -1,6 +1,9 @@
+import re
 from datetime import datetime, date
 
 from rest_framework.exceptions import ValidationError
+
+from investment_manager.utils import get_month_diff, format_date
 
 """
 File containing validation methods used in serializers
@@ -20,26 +23,6 @@ def validate_expected_date(investment_date, expected_date):
     """
     if expected_date < investment_date:
         raise ValidationError("Expected date is before investment date")
-
-def parse_expected_date(expected_date_string):
-    """
-    Pt:
-    Função usada para formatar uma string em datetime.date, se o formato for inválido, a checagem falha
-
-    Args:
-        expected_date_string(str): String to be formatted
-
-    Returns:
-        Formatted date from string
-
-    Raises:
-        ValidationError
-    """
-    try:
-        parsed_expected_date = datetime.strptime(expected_date_string,'%Y-%m-%d').date()
-        return parsed_expected_date
-    except ValueError:
-         raise ValidationError("Invalid format. Should be 'YYYY-MM-DD'")
 
 def validate_amount(amount):
     """
@@ -94,3 +77,28 @@ def check_if_already_withdrawn(investment_withdraw_date):
     """
     if investment_withdraw_date:
         raise ValidationError("Investment already withdrawn")
+
+def validate_owner_birthday(birthday):
+    """
+    Validates owner birthday
+    Args:
+        birthday: Birthday date
+    Raises:
+         ValidationError
+    """
+    age = get_month_diff(birthday,date.today())//12
+    if age <= 12:
+        raise ValidationError("Age should be 13 or higher")
+
+def validate_owner_name(name):
+    """
+    Validates owner name
+    Args:
+        name: Owner's name
+    Raises:
+         ValidationError
+    """
+    regex = r"[A-Za-zÀ-ÿ\s]{3,100}"
+    if not re.fullmatch(regex,name):
+        raise ValidationError("Invalid Name")
+
