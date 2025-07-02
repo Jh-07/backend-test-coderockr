@@ -28,6 +28,7 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(data= serializer.data, status=status.HTTP_200_OK)
 
+    # @action registers the url as basename-action, in this case investment-withdraw
     #TODO I don't undestand what detail parameter means, look it up.
     @action(detail = True, methods=['put'],url_path='withdraw')
     def withdraw(self,request,pk = None):

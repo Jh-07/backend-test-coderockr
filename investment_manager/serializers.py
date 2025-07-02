@@ -52,7 +52,7 @@ class InvestmentSerializer(serializers.ModelSerializer):
         model = Investment
         fields = '__all__'
 
-    # These individual validations are only triggred if the field is in the body. Make sure that these fields are NOT REQUIRED
+    # These individual validations are only triggred if the field is in the body.
     def validate_creation_date(self,creation_date):
         """
         Validates creation_date individualy
@@ -78,10 +78,10 @@ class InvestmentSerializer(serializers.ModelSerializer):
 
         if withdraw_date:
             investment = getattr(self, 'instance', None)
-            validators.check_if_already_withdrawn(investment.withdraw_date)
             if creation_date:
                 validators.validate_withdraw_date(creation_date, withdraw_date)
-            else:
+            elif investment:
+                validators.check_if_already_withdrawn(investment.withdraw_date)
                 validators.validate_withdraw_date(investment.creation_date, withdraw_date)
 
         return data
