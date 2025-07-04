@@ -22,7 +22,7 @@ from investment_manager.views import OwnerViewSet, InvestmentViewSet
 
 router = routers.DefaultRouter()
 
-#Registrando
+#Registering URLs
 router.register('owners', OwnerViewSet,'Owners')
 router.register('investments', InvestmentViewSet, 'Investments')
 

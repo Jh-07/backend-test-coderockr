@@ -3,8 +3,7 @@ from django.db import models
 # Create your models here.
 class Owner(models.Model):
     """
-    Pt:
-    Modelo dos donos de cada investimento
+    Model for owners in each investment
 
     Relations : Many to one - Investments
 
@@ -21,8 +20,7 @@ class Owner(models.Model):
 
 class Investment(models.Model):
     """
-    Pt:
-    Modelo dos investimentos. Cada investimento possui um investidor (Owner)
+    Investment model. Each investment has an owner
 
     Relations: Many to one - Owner
 

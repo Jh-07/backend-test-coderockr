@@ -11,6 +11,9 @@ def get_growth_rate():
     return rate
 
 def get_tax_rate(months):
+    """
+    Get tax rate depending on how many months of investments
+    """
     tax_rates = [
         '0.225',
         '0.185',

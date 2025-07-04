@@ -11,9 +11,7 @@ from investment_manager.utils import get_month_diff, calculate_expected_balance,
 
 class OwnerSerializer(serializers.ModelSerializer):
     """
-    Pt:
-    Serializador da classe/modelo Owner
-    Serializa todos os campos
+    Serializes every field
     """
 
     class Meta:
@@ -31,9 +29,8 @@ class OwnerSerializer(serializers.ModelSerializer):
 
 class InvestmentSerializer(serializers.ModelSerializer):
     """
-    Pt:
-    Serializador da classe/modelo Investment
-    Serializa todos os campos além dos campos derivativos expected_balance, tax , total_gains e net_gains.
+    Serializes every field
+    Adds derivate fields expected_balance , tax, total_gains, net_gains to GET response
     """
 
     ### Derivative fields
@@ -138,10 +135,7 @@ class InvestmentSerializer(serializers.ModelSerializer):
 
     def get_expected_balance(self, investment):
         """
-        Pt:
-        Retorna o campo expected_balance (total de dinheiro esperado dado uma data maior que
-        a data de criação do investimento) no JSON da resposta
-
+        Shows expected balance (without taxes) of a investment based on a date parameter
         Args:
             investment (Investment): Investment model
 

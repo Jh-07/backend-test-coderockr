@@ -210,9 +210,7 @@ class InvestmentTest(APITestCase):
         :return:
         """
         response = self.client.get(self.url_crud+'?owner=Jo')
-        print(response.data)
         for investment in response.data:
-            print(investment['owner_name'])
             self.assertIn(investment['owner_name'], ["Jonathas Martins" ,"João Pedro"])
 
     def test_delete_investment(self):

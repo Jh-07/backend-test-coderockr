@@ -9,7 +9,7 @@ from investment_manager.serializers import InvestmentSerializer, OwnerSerializer
 
 class InvestmentViewSet(viewsets.ModelViewSet):
     """
-    Habilita o CRUD de Investments
+    Enable CRUD for Investments
     """
     queryset = Investment.objects.all().order_by('-creation_date','-id')
     serializer_class = InvestmentSerializer
@@ -29,14 +29,15 @@ class InvestmentViewSet(viewsets.ModelViewSet):
         return Response(data= serializer.data, status=status.HTTP_200_OK)
 
     # @action registers the url as basename-action, in this case investment-withdraw
-    #TODO I don't undestand what detail parameter means, look it up.
+    # I don't undestand what detail parameter means, look it up.
+    # Answer: detail = True means this  receives a parameter to query a single instance (usualy is ID)
+    # detail = False means this action is aplied to a list of objects(queryset). If it where this case, you should deal with each instance separetly (using a for i.e) or passing many= True on  get.serializer if it's all the same treatment
     @action(detail = True, methods=['put'],url_path='withdraw')
     def withdraw(self,request,pk = None):
         """
         Creates an PUT only endpoint named 'withdraw'. If there is no body, passes today's date
         """
         investment = generics.get_object_or_404(Investment,pk=pk)
-        print("Request Data: ",request.data)
         withdraw_date_str = request.data.get('withdraw_date')
         if withdraw_date_str:
             try:
@@ -47,8 +48,9 @@ class InvestmentViewSet(viewsets.ModelViewSet):
                 return Response(data={"detail": "Invalid format. Should be 'YYYY-MM-DD'"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             withdraw_date = date.today()
-
-        #TODO I dont undestand this part either, look it up [lines 49-53]
+        # I don't undestand this part either, look it up [lines 49-53]
+        # Answer: This serializes the PUT body data to the Investment instance chosen.
+        # In this case, partialy [line 55], this means it can pass just parts of the investment object(only withdraw_date in the case) .
         serializer = self.get_serializer(
             investment,
             data = {'withdraw_date': withdraw_date},
@@ -62,7 +64,7 @@ class InvestmentViewSet(viewsets.ModelViewSet):
 
 class OwnerViewSet(viewsets.ModelViewSet):
     """
-    Habilita o CRUD de Owners
+    Enables CRUD for Owners
     """
     queryset = Owner.objects.all().order_by('id', 'name')
     serializer_class = OwnerSerializer

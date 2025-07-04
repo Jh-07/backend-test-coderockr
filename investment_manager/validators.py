@@ -11,8 +11,7 @@ File containing validation methods used in serializers
 
 def validate_expected_date(investment_date, expected_date):
     """
-    Pt:
-    Função para validar se a data esperada é menor que a data de investimento
+    Validates if a date is before investment date (goes for withdraw date and expected date)
 
     Args:
         investment_date (datetime.date): Date of creation of the investment
@@ -26,8 +25,7 @@ def validate_expected_date(investment_date, expected_date):
 
 def validate_amount(amount):
     """
-    Pt:
-    Simplesmente valida se o valor investido é menor que 0
+    Verifies if amount is <= 0
 
     Args:
         amount(float): Initial investment amount
@@ -40,8 +38,7 @@ def validate_amount(amount):
 
 def validate_investment_creation_date(investment_creation_date):
     """
-    Pt:
-    Valida se a data de investimento não é no futuro
+    Verifies if creation date is at future
 
     Args:
         investment_creation_date(datetime.date): Date of investment
