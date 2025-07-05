@@ -1,6 +1,8 @@
 from datetime import datetime, date
+
 from rest_framework.decorators import action
 from rest_framework import viewsets, generics, status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from investment_manager.models import Investment, Owner
@@ -13,7 +15,7 @@ class InvestmentViewSet(viewsets.ModelViewSet):
     """
     queryset = Investment.objects.all().order_by('-creation_date','-id')
     serializer_class = InvestmentSerializer
-
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def list(self, request, *args, **kwargs):
         """
         Returns a list of investments, can be all of them or filter by the owner's name
