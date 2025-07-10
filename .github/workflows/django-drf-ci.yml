@@ -10,10 +10,10 @@ jobs:
   tests:
 
     runs-on: ubuntu-latest
-    environment: django-keys
+    environment: django-keys #Required to get enviroment variables from github
     env:
         #Secret used from enviroment secrets from github actions
-        #commit comment
+        #Cannot use '-' only '_', so your code should be like this aswell
         DJANGO_KEY: ${{secrets.DJANGO_KEY}} 
     strategy:
       max-parallel: 4
