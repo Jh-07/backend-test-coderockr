@@ -7,9 +7,12 @@ on:
     branches: [ "development" ]
 
 jobs:
-  build:
+  tests:
 
     runs-on: ubuntu-latest
+    env:
+    #Secret used from enviroment secrets from github actions
+      DJANGO-KEY: ${{secrets.DJANGO_KEY}} 
     strategy:
       max-parallel: 4
       matrix:
