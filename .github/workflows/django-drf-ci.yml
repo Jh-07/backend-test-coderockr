@@ -10,6 +10,7 @@ jobs:
   tests:
 
     runs-on: ubuntu-latest
+    environment: django-keys
     env:
         #Secret used from enviroment secrets from github actions
         #commit comment
