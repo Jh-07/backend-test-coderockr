@@ -22,16 +22,15 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Prep env variables
-      env:
-        #Secret used from enviroment secrets from github actions
-        DJANGO-KEY: ${{secrets.DJANGO_KEY}} 
+      
     - name: Install Dependencies
       run: |
         echo DJANGO-KEY
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+      env:
+        #Secret used from enviroment secrets from github actions
+        DJANGO_KEY: ${{secrets.DJANGO_KEY}} 
         
     - name: Run prep for tests
       run: |
