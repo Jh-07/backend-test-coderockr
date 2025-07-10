@@ -10,7 +10,10 @@ jobs:
   tests:
 
     runs-on: ubuntu-latest
-   
+    env:
+        #Secret used from enviroment secrets from github actions
+        #commit comment
+        DJANGO_KEY: ${{secrets.DJANGO_KEY}} 
     strategy:
       max-parallel: 4
       matrix:
@@ -28,10 +31,7 @@ jobs:
         echo "Django key is: $DJANGO_KEY"
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-      env:
-        #Secret used from enviroment secrets from github actions
-        #commit comment
-        DJANGO_KEY: ${{secrets.DJANGO_KEY}} 
+      
         
     - name: Run prep for tests
       run: |
